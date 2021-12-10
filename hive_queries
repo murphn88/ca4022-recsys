@@ -1,0 +1,38 @@
+# HIVE Queries
+
+# create table and load data
+CREATE TABLE IF NOT EXISTS books(text_reviews_count INT, average_rating FLOAT, publisher STRING, num_pages INT, publication_year INT, book_id INT, ratings_count INT, title_without_series STRING, genre STRING)
+ROW FORMAT DELIMITED 
+FIELDS TERMINATED BY '\t';
+LOAD DATA LOCAL INPATH '/home/cliodhna/4thyear/CA4022/ca4022-recsys/data/small_books.csv' OVERWRITE INTO TABLE books;
+
+# most_rated
+INSERT OVERWRITE LOCAL DIRECTORY '/home/cliodhna/4thyear/CA4022/ca4022-recsys/data/most_rated' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' 
+select distinct title_without_series, ratings_count as count from books
+order by ratings_count desc
+limit 10;
+
+# top_rated
+INSERT OVERWRITE LOCAL DIRECTORY '/home/cliodhna/4thyear/CA4022/ca4022-recsys/data/top_rated' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' 
+select distinct title_without_series, average_rating from books
+order by average_rating desc
+limit 10;
+
+# total_rating
+INSERT OVERWRITE LOCAL DIRECTORY '/home/cliodhna/4thyear/CA4022/ca4022-recsys/data/total_rating' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' 
+select distinct title_without_series, (average_rating * ratings_count) as total_rating, average_rating, ratings_count from books
+order by total_rating desc
+limit 10;
+
+# genre_rating
+INSERT OVERWRITE LOCAL DIRECTORY '/home/cliodhna/4thyear/CA4022/ca4022-recsys/data/genre_rating' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' 
+select genre, AVG(average_rating) as avg from books
+group by genre
+order by avg desc
+limit 10;
+
+# rating_dist
+INSERT OVERWRITE LOCAL DIRECTORY '/home/cliodhna/4thyear/CA4022/ca4022-recsys/data/rating_dist' ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' 
+select round(average_rating, 0) as rounded_avg, count(*) as count from books
+group by round(average_rating, 0)
+order by count;
